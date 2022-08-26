@@ -2,17 +2,12 @@
 
 # This script pulls a list of images from Wikimedia Commons and outputs
 # a file containing the images that were of the desired aspect ratio.
-# There's really no reason this needs to be a pywikibot script.
-# I just happened to have a similar script sitting around that used
-# pywikibot, so this was quick and easy.
 #
 # Most functions herein don't do much error handling.
 # Instead, exceptions will be thrown, which is messy but effective.
 
 import json
-import pywikibot
-from pywikibot.comms import http
-# from pywikibot import pagegenerators, textlib
+import requests
 
 COMMONS_API_BASE_URL = 'https://commons.wikimedia.org/w/api.php'
 API_QUERY_PARAMS = '?action=query&generator=categorymembers&format=json&gcmtype=file&gcmtitle=Category:Featured_pictures_on_Wikimedia_Commons&prop=imageinfo&gcmlimit=50&iiprop=url|extmetadata&iiurlwidth=1920&continue=&gcmcontinue='
@@ -23,9 +18,9 @@ OUTPUT_FILE = './screensaver-images.txt'
 # ===========================================================
 def fetchImagesJson(gcmcontinue):
 	url = COMMONS_API_BASE_URL + API_QUERY_PARAMS + gcmcontinue
-	response = http.fetch(url)
+	response = requests.get(url)
 	if not response.content:
-		pywikibot.output('No json content available. Quitting.')
+		print('No json content available. Quitting.')
 		quit()
 	return response.content
 
@@ -42,7 +37,7 @@ def extractImageUrls(imagesInfo):
 	urls = []
 	for page in imagesInfo['query']['pages'].values():
 		if page['imageinfo'][0]['thumbwidth'] == 1920:
-			if page['imageinfo'][0]['thumbheight'] == 1440:
+			if page['imageinfo'][0]['thumbheight'] == 1080:
 				urls.append(page['imageinfo'][0]['thumburl'])
 	return urls
 
@@ -60,7 +55,7 @@ def saveOutputFile(urls):
 # main script routine
 # ===========================================================
 def main():
-	pywikibot.output('------- begin get_images.py -------');
+	print('------- begin get_images.py -------');
 
 	gcmcontinue = ''
 	count = 0
@@ -76,7 +71,7 @@ def main():
 		imageUrlCount += len(imageUrls)
 		count += 1
 
-	pywikibot.output('------- end get_images.py -------');
+	print('------- end get_images.py -------');
 
 # ===========================================================
 #  script entry point
